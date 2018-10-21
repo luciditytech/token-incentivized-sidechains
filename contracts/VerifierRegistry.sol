@@ -24,11 +24,9 @@ contract VerifierRegistry is Ownable {
   mapping(address => Verifier) public verifiers;
 
   address[] public addresses;
-  address public tokenAddress;
   uint256 public verifiersPerShard;
 
-  function VerifierRegistry(address _tokenAddress, uint256 _verifiersPerShard) {
-    tokenAddress = _tokenAddress;
+  function VerifierRegistry(uint256 _verifiersPerShard) {
     verifiersPerShard = _verifiersPerShard;
   }
 

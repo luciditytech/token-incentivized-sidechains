@@ -94,8 +94,9 @@ contract Chain is ChainConfig, ReentrancyGuard {
     uint256 shard;
     uint256 balance;
     (created, enabled, shard, balance) = _getVerifierInfo(msg.sender);
-    require(created, "verifier is not in the registry");
-    require(balance > 0, "verifier has no right to propose");
+    require(created, "verifier is not created in the registry");
+    require(enabled, "verifier is not enabled in the registry");
+    require(balance > 0, "verifier doesn't have a positive balance");
 
 
     Voter storage voter = blocks[blockHeight].voters[msg.sender];

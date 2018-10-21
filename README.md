@@ -1,5 +1,9 @@
-# Token Incentivized Sidechain
+# Andromeda
 A toolkit for developing Token Incentivized Sidechains on top of Ethereum.
+
+## Overview
+
+This repo provides a set of on-chain and off-chain tools to build generalized Proof-of-Stake sidechains with non-custodial payments.
 
 ---
 

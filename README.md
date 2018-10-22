@@ -114,7 +114,11 @@ token.approveAndCall(stakingBank.address, 1, null, { from: web3.eth.accounts[0] 
 stakingBank.balances(web3.eth.accounts[0]).then((v) => v.toNumber());
 ```
 
-### Start Consensus Service
+### Add Participant Entry
 
-Now that you've setup your rootchain consensus and verifier registry smart contracts, you can start a local consensus service to memorialize sidechain blocks onto the rootchain.  
+### Start Verifier Message Listener Service
+
+### Start Verifier Message Handler Service
+
+### Start Consensus Handler Service
 

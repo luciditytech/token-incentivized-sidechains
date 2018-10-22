@@ -121,4 +121,3 @@ stakingBank.balances(web3.eth.accounts[0]).then((v) => v.toNumber());
 ### Start Verifier Message Handler Service
 
 ### Start Consensus Handler Service
-

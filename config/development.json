@@ -10,5 +10,8 @@
   },
   "Chain": {
     "blocksPerPhase": "8"
+  },
+  "PlasmaBank": {
+    
   }
 }

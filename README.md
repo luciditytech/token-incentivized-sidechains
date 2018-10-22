@@ -114,10 +114,10 @@ token.approveAndCall(stakingBank.address, 1, null, { from: web3.eth.accounts[0] 
 stakingBank.balances(web3.eth.accounts[0]).then((v) => v.toNumber());
 ```
 
-### Add Participant Entry
-
 ### Start Verifier Message Listener Service
 
 ### Start Verifier Message Handler Service
+
+### Add Participant Entry
 
 ### Start Consensus Handler Service

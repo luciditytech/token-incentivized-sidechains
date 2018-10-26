@@ -1,4 +1,4 @@
-# Andromeda
+# Project 8 Framework
 A toolkit for developing Token Incentivized Sidechains on top of Ethereum.
 
 ## Overview

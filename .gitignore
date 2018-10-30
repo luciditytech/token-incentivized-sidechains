@@ -1,13 +1,5 @@
-.tern-port
 .DS_Store
-node_modules/
-*.log
-/build
-.truffle-solidity-loader
-.idea
-
-coverage
+build/
 coverage.json
-coverageEnv
-
-.env
+coverage/
+node_modules/

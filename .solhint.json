@@ -1,0 +1,9 @@
+{
+  "extends": "default",
+  "rules": {
+    "compiler-fixed": "warn",
+    "indent": [2],
+    "quotes": false,
+    "two-lines-top-level-separator": false
+  }
+}

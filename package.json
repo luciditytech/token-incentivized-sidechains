@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/luciditytech/token-incentivized-sidechains#readme",
   "dependencies": {
+    "abi-decoder": "^1.2.0",
     "bignumber.js": "^6.0.0",
     "openzeppelin-solidity": "^1.12.0",
     "token-sale-contracts": "git://github.com/luciditytech/token-sale-contracts.git#develop",
@@ -32,6 +33,8 @@
     "eslint": "^4.18.2",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.9.0",
-    "solidity-coverage": "^0.5.5"
+    "solidity-coverage": "^0.5.5",
+    "web3-eth": "^1.0.0-beta.36",
+    "web3-utils": "^1.0.0-beta.36"
   }
 }

@@ -1,5 +1,6 @@
-//import { assert, expect } from 'chai';
+import { assert, expect } from 'chai';
 import { assertRevert } from 'openzeppelin-solidity/test/helpers/assertRevert';
+import web3Utils from 'web3-utils';
 
 const SparseMerkleTree = require('../../lib/SparseMerkleTree');
 const BN = require('bn.js');
@@ -70,6 +71,7 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
 
       describe("when there is a valid consensus root in the chain", () => {
         let merkleTree;
+        let secret;
 
         beforeEach(async () => {
           registry = await VerifierRegistry.new(1);
@@ -88,32 +90,57 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
 
           var stakingBankAddress = await chain.stakingBank();
           
-          await token.approve(
+          await token.approveAndCall(
             stakingBankAddress,
-            new BN('1000', 10).toNumber(),
+            allowance.toNumber(),
+            null,
             {
               from: accounts[0]
             }
           );
 
-          var stakingBalance = await getBalanceOf(token.address, accounts[0]);
-          console.log(stakingBalance);
+          var staked = await getBalanceOf(token.address, stakingBankAddress);
+          assert(staked === allowance.toNumber());
 
           var block = await web3.eth.getBlock("latest");
-          var blockToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
+          var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
 
           merkleTree = new SparseMerkleTree({
-            1: Buffer.from("0")
+            '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02': Buffer.from("25")
           });
 
-          await TestHelper.mineBlock(blockToMine);
+          await TestHelper.mineBlock(blocksToMine);
+
+          var proposal = merkleTree.getHexRoot();
+
+          secret = web3Utils.soliditySha3(0x0);
+
+          var blindedProposal = web3Utils.soliditySha3(
+            proposal,
+            secret
+          );
 
           await chain.propose(
-            merkleTree.getHexRoot(),
+            blindedProposal,
             {
               from: accounts[0]
             }
           );
+
+          await TestHelper.mineBlock(
+            new BN(web3.eth.getBlock("latest").number, 10)
+              .add(new BN(blocksPerPhase, 10))
+          );
+
+          await chain.reveal(
+            proposal,
+            secret
+          );
+
+          var blockHeight = await chain.getBlockHeight();
+
+          var lastBlockRoot = await chain.getBlockRoot(blockHeight.toNumber() - 1, 0);
+          assert(lastBlockRoot == proposal);
         });
 
         it('execute the method succesfully', async () => {

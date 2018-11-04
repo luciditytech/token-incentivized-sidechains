@@ -65,8 +65,7 @@ contract PlasmaBank is Ownable, ReentrancyGuard {
 
   function lastValidBlockRootForShard(uint256 _shard) internal returns (uint256, bytes32) {
     Chain chain = Chain(chainAddress);
-    //uint256 blockHeight = chain.getBlockHeight() - 1;
-    var blockHeight = (block.number / (8 * 2)) - 1;
+    uint256 blockHeight = chain.getBlockHeight() - 1;
 
     for (uint256 i = blockHeight; i >= 0; i--) {
       bytes32 root = chain.getBlockRoot(i, _shard);

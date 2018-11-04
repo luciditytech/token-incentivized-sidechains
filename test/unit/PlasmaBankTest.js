@@ -31,7 +31,7 @@ contract ('PlasmaBank', (accounts) => {
   };
 
   describe('#exit()', () => {
-    let contract;
+    let bank;
     let token;
     let registry;
     let chain;
@@ -48,11 +48,6 @@ contract ('PlasmaBank', (accounts) => {
         9,
         "TST"
       );
-
-      contract = await PlasmaBank.new(
-        0x0,
-        0x0
-      );
     });
 
     afterEach(async () => {
@@ -60,13 +55,8 @@ contract ('PlasmaBank', (accounts) => {
     });
 
     describe("when a participant deposits tokens", () => {
-      let allowance = new BN('1000', 10);
-
-      beforeEach(async () => {
-        await token.approve(contract.address, allowance.toNumber(), {
-          from: accounts[0],
-        });
-      });
+      let stake = new BN('50', 10);
+      let deposit = new BN('50', 10);
 
       describe("when there is a valid consensus root in the chain", () => {
         let merkleTree;
@@ -91,7 +81,7 @@ contract ('PlasmaBank', (accounts) => {
           
           await token.approveAndCall(
             stakingBankAddress,
-            allowance.toNumber(),
+            stake.toNumber(),
             null,
             {
               from: accounts[0]
@@ -99,7 +89,22 @@ contract ('PlasmaBank', (accounts) => {
           );
 
           var staked = await getBalanceOf(token.address, stakingBankAddress);
-          assert(staked === allowance.toNumber());
+          assert(staked === stake.toNumber());
+
+          bank = await PlasmaBank.new(
+            token.address,
+            chain.address
+          );
+
+          // make a deposit to the token bank
+          await token.approveAndCall(
+            bank.address,
+            deposit.toNumber(),
+            null,
+            {
+              from: accounts[0]
+            }
+          );
 
           if (await chain.getCurrentElectionCycleBlock() >= blocksPerPhase) {
             var block = await web3.eth.getBlock("latest");
@@ -150,7 +155,7 @@ contract ('PlasmaBank', (accounts) => {
             '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02'
           );
 
-          await contract.exit(
+          await bank.exit(
             0,
             0,
             proof

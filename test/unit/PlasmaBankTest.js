@@ -12,20 +12,19 @@ contract ('PlasmaBank', (accounts) => {
   const Chain = artifacts.require('./Chain.sol');
   const VerifierRegistry = artifacts.require('./VerifierRegistry.sol');
 
-
-var getBalanceOf = function(tokenAddress, accountAddress) {
-  var promise = new Promise(function(resolve, reject) {
-    HumanStandardToken
-      .at(tokenAddress)
-      .then(function(token) {
-        return token.balanceOf.call(accountAddress)
-      })
-      .then(function (result) {
-        resolve(result.toNumber());
-      })
-      .catch(function(err) { 
-        reject(new Error(err));
-      });
+  var getBalanceOf = function(tokenAddress, accountAddress) {
+    var promise = new Promise(function(resolve, reject) {
+      HumanStandardToken
+        .at(tokenAddress)
+        .then(function(token) {
+          return token.balanceOf.call(accountAddress)
+        })
+        .then(function (result) {
+          resolve(result.toNumber());
+        })
+        .catch(function(err) { 
+          reject(new Error(err));
+        });
     });
 
     return promise;
@@ -38,7 +37,7 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
     let chain;
 
     let snapshotId;
-    let blocksPerPhase = 2;
+    let blocksPerPhase = 8;
 
     beforeEach(async () => {
       snapshotId = await TestHelper.takeSnapshot();
@@ -102,14 +101,15 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
           var staked = await getBalanceOf(token.address, stakingBankAddress);
           assert(staked === allowance.toNumber());
 
-          var block = await web3.eth.getBlock("latest");
-          var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
+          if (await chain.getCurrentElectionCycleBlock() >= blocksPerPhase) {
+            var block = await web3.eth.getBlock("latest");
+            var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
+            await TestHelper.mineBlock(blocksToMine);
+          }
 
           merkleTree = new SparseMerkleTree({
             '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02': Buffer.from("25")
           });
-
-          await TestHelper.mineBlock(blocksToMine);
 
           var proposal = merkleTree.getHexRoot();
 
@@ -127,19 +127,21 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
             }
           );
 
-          await TestHelper.mineBlock(
-            new BN(web3.eth.getBlock("latest").number, 10)
-              .add(new BN(blocksPerPhase, 10))
-          );
+          if (await chain.getCurrentElectionCycleBlock() < blocksPerPhase) {
+            var block = await web3.eth.getBlock("latest");
+            var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
+            await TestHelper.mineBlock(blocksToMine);
+          }
 
           await chain.reveal(
             proposal,
             secret
           );
 
-          var blockHeight = await chain.getBlockHeight();
-
-          var lastBlockRoot = await chain.getBlockRoot(blockHeight.toNumber() - 1, 0);
+          // var blockHeight = await chain.getBlockHeight();
+          var blockHeight = (await web3.eth.getBlock("latest")).number / (blocksPerPhase * 2);
+          var lastBlockRoot = await chain.getBlockRoot(blockHeight, 0);
+          console.log(lastBlockRoot + ' == ' + proposal);
           assert(lastBlockRoot == proposal);
         });
 
@@ -148,13 +150,11 @@ var getBalanceOf = function(tokenAddress, accountAddress) {
             '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02'
           );
 
-          /*
           await contract.exit(
             0,
             0,
-            []
+            proof
           );
-          */
         });
       });
     });

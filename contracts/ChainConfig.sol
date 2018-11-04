@@ -10,7 +10,7 @@ contract ChainConfig is Ownable {
 
   using SafeMath for uint256;
 
-  uint8 public blocksPerPhase;
+  uint256 public blocksPerPhase;
 
   /// @dev address of `VerifierRegistry.sol`
   address public registryAddress;

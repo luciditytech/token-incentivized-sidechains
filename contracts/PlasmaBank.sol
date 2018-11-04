@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./Chain.sol";
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import 'zeppelin-solidity/contracts/MerkleProof.sol';
 import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
 import 'token-sale-contracts/contracts/Token.sol';
@@ -62,9 +63,10 @@ contract PlasmaBank is Ownable, ReentrancyGuard {
     return true;
   }
 
-  function lastValidBlockRootForShard(uint256 _shard) internal view returns (uint256, bytes32) {
+  function lastValidBlockRootForShard(uint256 _shard) internal returns (uint256, bytes32) {
     Chain chain = Chain(chainAddress);
-    uint256 blockHeight = chain.getBlockHeight() - 1;
+    //uint256 blockHeight = chain.getBlockHeight() - 1;
+    var blockHeight = (block.number / (8 * 2)) - 1;
 
     for (uint256 i = blockHeight; i >= 0; i--) {
       bytes32 root = chain.getBlockRoot(i, _shard);

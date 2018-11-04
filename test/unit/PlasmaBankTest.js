@@ -113,7 +113,7 @@ contract ('PlasmaBank', (accounts) => {
           }
 
           merkleTree = new SparseMerkleTree({
-            '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02': Buffer.from("25")
+            '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02': Buffer.from(deposit.toString())
           });
 
           var proposal = merkleTree.getHexRoot();
@@ -157,7 +157,7 @@ contract ('PlasmaBank', (accounts) => {
 
           await bank.exit(
             0,
-            0,
+            deposit.toNumber(),
             proof
           );
         });

@@ -163,6 +163,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
 
   function getBlockHeight()
   public
+  view
   returns (uint256) {
     return block.number.div(uint256(blocksPerPhase) * 2);
   }
@@ -201,7 +202,7 @@ contract Chain is ChainConfig, ReentrancyGuard {
 
 
 
-  function getBlockRoot(uint256 _blockHeight, uint256 _shard) public view returns (bytes32) {
+  function getBlockRoot(uint256 _blockHeight, uint256 _shard) external view returns (bytes32) {
     return blocks[_blockHeight].roots[_shard];
   }
 

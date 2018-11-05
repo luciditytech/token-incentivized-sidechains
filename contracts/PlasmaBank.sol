@@ -51,7 +51,15 @@ contract PlasmaBank is Ownable, ReentrancyGuard {
 
     bytes32 leafValue = keccak256(_balance);
 
-    require(verifyProof(_proof, root, leafValue, uint256(msg.sender)), "proof could not be verified");
+    require(
+      verifyProof(
+        _proof,
+        root,
+        leafValue,
+        uint256(msg.sender)
+      ),
+      "proof could not be verified"
+    );
 
     Token token = Token(tokenAddress);
 

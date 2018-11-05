@@ -8,30 +8,30 @@ const TestHelper = require('../helpers/TestHelper');
 
 const { sha3, sha256, bufferToHex } = require('ethereumjs-util');
 
+const PlasmaBank = artifacts.require('PlasmaBank');
+const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
+const Chain = artifacts.require('./Chain.sol');
+const VerifierRegistry = artifacts.require('./VerifierRegistry.sol');
+
+var getBalanceOf = function(tokenAddress, accountAddress) {
+  var promise = new Promise(function(resolve, reject) {
+    HumanStandardToken
+      .at(tokenAddress)
+      .then(function(token) {
+        return token.balanceOf.call(accountAddress)
+      })
+      .then(function (result) {
+        resolve(result.toNumber());
+      })
+      .catch(function(err) { 
+        reject(new Error(err));
+      });
+  });
+
+  return promise;
+};
+
 contract ('PlasmaBank', (accounts) => {
-  const PlasmaBank = artifacts.require('PlasmaBank');
-  const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
-  const Chain = artifacts.require('./Chain.sol');
-  const VerifierRegistry = artifacts.require('./VerifierRegistry.sol');
-
-  var getBalanceOf = function(tokenAddress, accountAddress) {
-    var promise = new Promise(function(resolve, reject) {
-      HumanStandardToken
-        .at(tokenAddress)
-        .then(function(token) {
-          return token.balanceOf.call(accountAddress)
-        })
-        .then(function (result) {
-          resolve(result.toNumber());
-        })
-        .catch(function(err) { 
-          reject(new Error(err));
-        });
-    });
-
-    return promise;
-  };
-
   describe('#exit()', () => {
     let bank;
     let token;
@@ -65,6 +65,7 @@ contract ('PlasmaBank', (accounts) => {
         let secret;
 
         beforeEach(async () => {
+          // setup registry
           registry = await VerifierRegistry.new(1);
 
           await registry.create(
@@ -73,12 +74,14 @@ contract ('PlasmaBank', (accounts) => {
             true
           );
 
+          // setup root chain consensus contract
           chain = await Chain.new(
             token.address,
             registry.address,
             blocksPerPhase
           );
 
+          // set tokens at stake to participate in consnesus
           var stakingBankAddress = await chain.stakingBank();
           
           await token.approveAndCall(
@@ -93,6 +96,7 @@ contract ('PlasmaBank', (accounts) => {
           var staked = await getBalanceOf(token.address, stakingBankAddress);
           assert(staked === stake.toNumber());
 
+          // setup the 2-way peg token bank
           bank = await PlasmaBank.new(
             token.address,
             chain.address
@@ -108,16 +112,19 @@ contract ('PlasmaBank', (accounts) => {
             }
           );
 
+          // mine until it's time to propose a new merkle root
           if (await chain.getCurrentElectionCycleBlock() >= blocksPerPhase) {
             var block = await web3.eth.getBlock("latest");
             var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
             await TestHelper.mineBlock(blocksToMine);
           }
 
+          // setup the merkle tree for the consensus root
           merkleTree = new SparseMerkleTree({
             1: sha3(Buffer.from("1"))
           }, 4);
 
+          // submit a blind proposal of the merkle root
           var proposal = merkleTree.getHexRoot();
           secret = web3Utils.soliditySha3(0x0);
 
@@ -133,12 +140,14 @@ contract ('PlasmaBank', (accounts) => {
             }
           );
 
+          // mine until it's time reveal our committed proposal
           if (await chain.getCurrentElectionCycleBlock() < blocksPerPhase) {
             var block = await web3.eth.getBlock("latest");
             var blocksToMine = new BN(block.number, 10).add(new BN(blocksPerPhase, 10));
             await TestHelper.mineBlock(blocksToMine);
           }
 
+          // reveal the secret and original merkle root
           await chain.reveal(
             proposal,
             secret,
@@ -147,9 +156,9 @@ contract ('PlasmaBank', (accounts) => {
             }
           );
 
+          // assert that the consensus root is the proposed merkle root
           var blockHeight = await chain.getBlockHeight();
           var lastBlockRoot = await chain.getBlockRoot(blockHeight, 0);
-          // console.log(lastBlockRoot + ' == ' + proposal);
           assert(lastBlockRoot == proposal);
         });
 

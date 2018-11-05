@@ -118,6 +118,9 @@ contract ('PlasmaBank', (accounts) => {
                   from: accounts[0]
                 }
               );
+
+              var bankBalance = await getBalanceOf(token.address, bank.address);
+              assert(bankBalance === deposit.toNumber());
             });
 
             describe("when there is a valid consensus root", () => {
@@ -135,7 +138,10 @@ contract ('PlasmaBank', (accounts) => {
 
                 // setup the merkle tree for the consensus root
                 let treeData = {};
-                treeData[index] = sha3(deposit.toNumber());
+                const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
+                const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
+
+                treeData[index] = leafValue;
 
                 merkleTree = new SparseMerkleTree(treeData, 4);
 
@@ -178,7 +184,10 @@ contract ('PlasmaBank', (accounts) => {
               });
 
               it('client generated the correct proof', async () => {
-                const leafValue = sha3(deposit.toNumber());
+                // const leafValue = sha3(deposit.toNumber());
+                const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
+                const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
+
                 const proof = merkleTree.getProofForIndex(index);
 
                 expect(
@@ -194,34 +203,43 @@ contract ('PlasmaBank', (accounts) => {
               it('verifies the correct proof', async () => {
                 const proof = merkleTree.getHexProofForIndex(index);
 
-                const leafValue = SparseMerkleTree.bufArrToHex(
-                  [sha3(deposit.toNumber())]
-                );
+                // const leafValue = bufferToHex(sha3(deposit.toNumber()));
+
+                const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
+                const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
 
                 const res = await bank.verifyProof(
                   proof,
                   merkleTree.getHexRoot(),
-                  leafValue,
+                  bufferToHex(leafValue),
                   index
                 );
 
                 assert(res);
               });
 
-              /*
               it('exits with the correct amount of tokens', async () => {
                 const proof = merkleTree.getHexProofForIndex(index);
+
+                const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
+                const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
+
+                const test = web3Utils.soliditySha3(deposit.toNumber());
+
+                console.log('leafValue = ' + bufferToHex(leafValue));
+                console.log('test      = ' + test);
 
                 await bank.exit(
                   0,
                   deposit.toNumber(),
                   proof,
+                  index,
+                  bufferToHex(leafValue),
                   {
                     from: accounts[0]
                   }
                 );
               });
-              */
             });
           });
         });

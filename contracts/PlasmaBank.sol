@@ -41,9 +41,7 @@ contract PlasmaBank is Ownable, ReentrancyGuard {
   function exit(
     uint256 _shard,
     uint256 _balance,
-    bytes _proof,
-    uint256 _index,
-    bytes32 _inputLeafValue
+    bytes _proof
   ) public nonReentrant returns (bool success) {
     var (blockHeight, root) = lastValidBlockRootForShard(_shard);
     require(blockHeight > 0, "couldn't find valid block height");
@@ -51,11 +49,9 @@ contract PlasmaBank is Ownable, ReentrancyGuard {
     bool withdrewAtBlock = withdrawals[blockHeight][msg.sender];
     require(!withdrewAtBlock, "account already withdrew in the current consensus round");
 
-    // bytes32 leafValue = keccak256(abi.encodePacked(tokenAddress, msg.sender, _balance));
     bytes32 leafValue = keccak256(_balance);
-    require(leafValue == _inputLeafValue, "leaf values didn't match");
 
-    require(verifyProof(_proof, root, _inputLeafValue, _index), "proof could not be verified");
+    require(verifyProof(_proof, root, leafValue, uint256(msg.sender)), "proof could not be verified");
 
     Token token = Token(tokenAddress);
 

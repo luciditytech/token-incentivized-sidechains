@@ -184,7 +184,6 @@ contract ('PlasmaBank', (accounts) => {
               });
 
               it('client generated the correct proof', async () => {
-                // const leafValue = sha3(deposit.toNumber());
                 const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
                 const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
 
@@ -203,8 +202,6 @@ contract ('PlasmaBank', (accounts) => {
               it('verifies the correct proof', async () => {
                 const proof = merkleTree.getHexProofForIndex(index);
 
-                // const leafValue = bufferToHex(sha3(deposit.toNumber()));
-
                 const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
                 const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
 
@@ -221,24 +218,17 @@ contract ('PlasmaBank', (accounts) => {
               it('exits with the correct amount of tokens', async () => {
                 const proof = merkleTree.getHexProofForIndex(index);
 
-                const rawLeafValue = web3Utils.soliditySha3(deposit.toNumber());
-                const leafValue = new Buffer(rawLeafValue.substr(2), 'hex');
-
-                const test = web3Utils.soliditySha3(deposit.toNumber());
-
-                console.log('leafValue = ' + bufferToHex(leafValue));
-                console.log('test      = ' + test);
-
                 await bank.exit(
                   0,
                   deposit.toNumber(),
                   proof,
-                  index,
-                  bufferToHex(leafValue),
                   {
                     from: accounts[0]
                   }
                 );
+
+                var bankBalance = await getBalanceOf(token.address, bank.address);
+                assert(bankBalance === 0);
               });
             });
           });

@@ -6,6 +6,8 @@ const SparseMerkleTree = require('../../lib/SparseMerkleTree');
 const BN = require('bn.js');
 const TestHelper = require('../helpers/TestHelper');
 
+const { sha3, sha256, bufferToHex } = require('ethereumjs-util');
+
 contract ('PlasmaBank', (accounts) => {
   const PlasmaBank = artifacts.require('PlasmaBank');
   const HumanStandardToken = artifacts.require('token-sale-contracts/contracts/HumanStandardToken.sol');
@@ -113,11 +115,10 @@ contract ('PlasmaBank', (accounts) => {
           }
 
           merkleTree = new SparseMerkleTree({
-            '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02': Buffer.from(deposit.toString())
-          });
+            1: sha3(Buffer.from("1"))
+          }, 4);
 
           var proposal = merkleTree.getHexRoot();
-
           secret = web3Utils.soliditySha3(0x0);
 
           var blindedProposal = web3Utils.soliditySha3(
@@ -140,27 +141,67 @@ contract ('PlasmaBank', (accounts) => {
 
           await chain.reveal(
             proposal,
-            secret
+            secret,
+            {
+              from: accounts[0]
+            }
           );
 
-          // var blockHeight = await chain.getBlockHeight();
-          var blockHeight = (await web3.eth.getBlock("latest")).number / (blocksPerPhase * 2);
+          var blockHeight = await chain.getBlockHeight();
           var lastBlockRoot = await chain.getBlockRoot(blockHeight, 0);
-          console.log(lastBlockRoot + ' == ' + proposal);
+          // console.log(lastBlockRoot + ' == ' + proposal);
           assert(lastBlockRoot == proposal);
         });
 
-        it('execute the method succesfully', async () => {
-          const proof = merkleTree.getProofForIndex(
-            '0x6a632b283169bb0e4587422b081393d1c2e29af3c36c24735985e9c95c7c0a02'
+        it('generated the correct proof (by the client)', async () => {
+          // const leafValue = web3Utils.soliditySha3(token.address, accounts[0], deposit.toNumber());
+          const leafValue = sha3(Buffer.from("1"));
+
+          const index = 1;
+          const proof = merkleTree.getProofForIndex(index);
+
+          expect(
+            merkleTree.verifyProof(
+              proof,
+              merkleTree.getRoot(),
+              leafValue,
+              index
+            )
+          ).to.equal(true);
+        });
+
+        it('verifies the correct proof', async () => {
+          // assert.isTrue(await plasma.verifyProof(merkleTree.getHexProofForIndex(4), merkleTree.getHexRoot(), SparseMerkleTree.bufArrToHex([sha3(Buffer.from("4"))]), 4));
+          const index = 1;
+          const proof = merkleTree.getHexProofForIndex(index);
+          // const leafValue = sha3(Buffer.from("1"));
+          const leafValue = SparseMerkleTree.bufArrToHex([sha3(Buffer.from("1"))]);
+
+          const res = await bank.verifyProof(
+            proof,
+            merkleTree.getHexRoot(),
+            leafValue,
+            index
           );
+
+          assert(res);
+        });
+
+        /*
+        it('exits with the correct amount of tokens', async () => {
+          const proof = merkleTree.getHexProofForIndex(account);
+          // console.log(account);
 
           await bank.exit(
             0,
             deposit.toNumber(),
-            proof
+            proof,
+            {
+              from: accounts[0]
+            }
           );
         });
+        */
       });
     });
   });

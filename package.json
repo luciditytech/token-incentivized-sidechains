@@ -21,9 +21,9 @@
   "dependencies": {
     "abi-decoder": "^1.2.0",
     "bignumber.js": "^6.0.0",
-    "openzeppelin-solidity": "^1.12.0",
     "token-sale-contracts": "git://github.com/luciditytech/token-sale-contracts.git#develop",
-    "zeppelin-solidity": "^1.7.0"
+    "openzeppelin-solidity": "^1.12.0",
+    "zeppelin-solidity": "^1.12.0"
   },
   "devDependencies": {
     "babel-polyfill": "^6.26.0",

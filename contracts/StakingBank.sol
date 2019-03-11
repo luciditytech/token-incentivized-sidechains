@@ -7,8 +7,6 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-import "token-sale-contracts/contracts/Salable.sol";
-
 import "contract-registry/contracts/interfaces/RegistrableWithSingleStorage.sol";
 import "contract-registry/contracts/storageStrategy/interfaces/IStorageStrategy.sol";
 import "digivice/contracts/interfaces/IVerifierRegistry.sol";
@@ -60,8 +58,9 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
     return true;
   }
 
-  // TODO should we restrict getting staking tokens during reveal phase as we restrict withdraw during propose?
-  function receiveApproval(address _from)
+  // when working with `Salable.sol` token, please update this function to:
+  // `function receiveApproval(address _from)`
+  function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes calldata _extraData)
   external
   returns (bool) {
     StakingBankStorage bankStorage = _storage();

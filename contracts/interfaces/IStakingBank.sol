@@ -6,7 +6,7 @@ interface IStakingBank {
 
   function withdraw(uint256 _value) external returns (bool);
 
-  function receiveApproval(address) external returns (bool);
+  function receiveApproval(address, uint256, address, bytes calldata) external returns (bool);
 
   function stakingBalance(address _verifier) external view returns (uint256);
 

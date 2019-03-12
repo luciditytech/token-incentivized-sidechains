@@ -1,7 +1,7 @@
 const ministroExecute = require('ministro-tool');
 const BigNumber = require('bignumber.js');
 
-const Salable = artifacts.require('Salable');
+const HumanStandardToken = artifacts.require('HumanStandardToken');
 
 function MinistroContract() {
   const app = {};
@@ -10,7 +10,7 @@ function MinistroContract() {
   app.__proto__ = ministroExecute();
 
   const tokenBalance = async (verifier) => {
-    const erc20 = await Salable.at(await app.token());
+    const erc20 = await HumanStandardToken.at(await app.token());
     return erc20.balanceOf.call(verifier);
   };
 

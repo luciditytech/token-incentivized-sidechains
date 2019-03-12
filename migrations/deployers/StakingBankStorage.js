@@ -1,17 +1,14 @@
 const getConfig = require('../inc/getConfig');
 
-module.exports = (deployer, network, accounts, StakingBankStorageArtifact, SalableArtifacts) => {
+module.exports = (deployer, network, accounts, StakingBankStorageArtifact, SalesArtifacts) => {
   return deployer.then(async () => {
-    const { options, config } = getConfig(network, accounts);
+    const { options } = getConfig(network, accounts);
 
-    if (!config.token) {
-      const salable = await SalableArtifacts.deployed();
-      config.token = salable.address;
-    }
+    const sales = await SalesArtifacts.deployed();
 
     return deployer.deploy(
       StakingBankStorageArtifact,
-      config.token,
+      await sales.token(),
       options,
     );
   });

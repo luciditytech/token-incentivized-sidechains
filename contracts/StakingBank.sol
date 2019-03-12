@@ -4,13 +4,13 @@ import "./interfaces/IStakingBank.sol";
 import "./StakingBankStorage.sol";
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 import "contract-registry/contracts/interfaces/RegistrableWithSingleStorage.sol";
 import "contract-registry/contracts/storageStrategy/interfaces/IStorageStrategy.sol";
 import "digivice/contracts/interfaces/IVerifierRegistry.sol";
 import "andromeda/contracts/interface/IChain.sol";
+import "token-sale-contracts/contracts/HumanStandardToken.sol";
 
 contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
 
@@ -42,7 +42,7 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
   onlyWhenRevealPhase
   returns (bool) {
     StakingBankStorage bankStorage = _storage();
-    IERC20 token = bankStorage.token();
+    HumanStandardToken token = HumanStandardToken(address(bankStorage.token()));
 
     uint256 balance = bankStorage.stakingBalances(msg.sender);
 
@@ -60,11 +60,12 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
 
   // when working with `Salable.sol` token, please update this function to:
   // `function receiveApproval(address _from)`
-  function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes calldata _extraData)
+  //function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes calldata _extraData)
+  function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _data)
   external
   returns (bool) {
     StakingBankStorage bankStorage = _storage();
-    IERC20 token = bankStorage.token();
+    HumanStandardToken token = HumanStandardToken(address(bankStorage.token()));
 
     uint256 allowance = token.allowance(_from, address(this));
     require(allowance > 0, "nothing to approve");

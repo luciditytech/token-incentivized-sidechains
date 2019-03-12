@@ -26,7 +26,7 @@ contract('StakingBank', (accounts) => {
       contractRegistry = await deployContractRegistry();
     });
 
-    describe('when Token is deployed', async () => {
+    describe('when token is deployed', async () => {
       before(async () => {
         token = await deployHumanStandardToken();
       });
@@ -92,6 +92,7 @@ contract('StakingBank', (accounts) => {
                 await mineBlock(getNextProposeStartBlock(await ethBlockNumber(), blocksPerPhase));
                 assert(await chain.isProposePhase(), 'should be propose');
               });
+
               it('staking tokens should be locked and withdraw should throw', async () => {
                 await ministroStakingBank.withdraw(1, { from: verifier }, true);
               });

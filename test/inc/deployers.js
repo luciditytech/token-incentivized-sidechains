@@ -52,7 +52,7 @@ const deployChain = async (contractRegistryAddr) => {
   return chain;
 };
 
-const deployedStakingBank = async (owner, contractRegistryAddr, tokenAddr) => {
+const deployStakingBank = async (owner, contractRegistryAddr, tokenAddr) => {
   const contractRegistry = await ContractRegistry.at(contractRegistryAddr);
 
   const storage = await StakingBankStorage.new(tokenAddr);
@@ -80,5 +80,5 @@ module.exports = {
   deployVerifierRegistry,
   deployHumanStandardToken,
   deployChain,
-  deployedStakingBank,
+  deployStakingBank,
 };

@@ -6,4 +6,3 @@ import "contract-registry/contracts/ContractRegistry.sol";
 import "digivice/contracts/VerifierRegistryStorage.sol";
 import "digivice/contracts/VerifierRegistry.sol";
 // import "andromeda/contracts/Chain.sol";
-import "token-sale-contracts/contracts/Sales.sol";

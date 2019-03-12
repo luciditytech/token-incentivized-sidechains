@@ -1,7 +1,7 @@
 const BigNumber = require('bignumber.js');
 
 const {
-  deployedStakingBank,
+  deployStakingBank,
   deployContractRegistry,
   deployVerifierRegistry,
   deployHumanStandardToken,
@@ -13,7 +13,7 @@ const { getNextProposeStartBlock, getNextRevealStartBlock } = require('../inc/ch
 
 const { mineBlock, ethBlockNumber } = require('../inc/helpers');
 
-contract('STAKING BALANCE INTEGRATION TEST', (accounts) => {
+contract('StakingBank', (accounts) => {
   let contractRegistry;
   let verifierRegistry;
   let stakingBankInstance;
@@ -38,7 +38,7 @@ contract('STAKING BALANCE INTEGRATION TEST', (accounts) => {
 
         describe('when stakingBank is deployed', async () => {
           before(async () => {
-            ({ ministroStakingBank, stakingBankInstance } = await deployedStakingBank(
+            ({ ministroStakingBank, stakingBankInstance } = await deployStakingBank(
               accounts[0],
               contractRegistry.address,
               token.address,

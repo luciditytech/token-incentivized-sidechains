@@ -6,7 +6,7 @@ const VerifierRegistry = artifacts.require('VerifierRegistry');
 const HumanStandardToken = artifacts.require('HumanStandardToken');
 const Chain = artifacts.require('Chain');
 
-const vrConfig = require('digivice/config/development');
+const verifierRegistryConfig = require('digivice/config/development');
 const tokenConf = require('token-sale-contracts/conf/development');
 const chainConf = require('andromeda/config/development');
 
@@ -18,7 +18,7 @@ const deployVerifierRegistry = async (contractRegistryAddr) => {
   const contractRegistry = await ContractRegistry.at(contractRegistryAddr);
 
   const vrStorage = await VerifierRegistryStorage.new(
-    vrConfig.VerifierRegistry.verifiersPerShard,
+    verifierRegistryConfig.VerifierRegistry.verifiersPerShard,
   );
 
   const verifierRegistry = await VerifierRegistry.new(

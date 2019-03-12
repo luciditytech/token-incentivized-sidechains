@@ -60,7 +60,6 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
 
   // when working with `Salable.sol` token, please update this function to:
   // `function receiveApproval(address _from)`
-  //function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes calldata _extraData)
   function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _data)
   external
   returns (bool) {
@@ -76,6 +75,52 @@ contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
     _notifyVerifierRegistryAboutIncreasingBalance(_from, allowance);
 
     return true;
+  }
+
+  event Log(bytes _data);
+  event LogSig(bytes4 _data);
+  event LogAddr(address _data);
+
+  function bytesToAddress(bytes memory _address) public returns (address) {
+    uint160 m = 0;
+    uint8 b = 0;
+    uint8 offset = 16; // for solidity v5: 16, for v4: it will be probably 12
+
+
+    for (uint8 i = 0; i < 20; i++) {
+      m *= 256;
+      b = uint8(_address[i + offset]);
+      m += uint160(b);
+    }
+
+    emit LogAddr(address(m));
+
+    return address(m);
+  }
+
+  function _checkReceiveApprovalSig(bytes memory _data) private returns (bool) {
+    bytes4 receiveApprovalSig = bytes4(0x8f4ffcb1);
+    bytes4 signature;
+
+    require(_data.length >= 4, "invalid _data.length");
+
+    assembly {
+      signature := mload(add(_data, 32))
+    }
+
+    emit LogSig(signature);
+
+    require(signature == receiveApprovalSig, "invalid receiveApprovalSig");
+
+    return true;
+  }
+
+  function () external {
+    emit Log(msg.data);
+
+    //_checkReceiveApprovalSig(msg.data);
+    //bytesToAddress(msg.data);
+    //receiveApproval(bytesToAddress(msg.data));
   }
 
   function _notifyVerifierRegistryAboutIncreasingBalance(address _verifier, uint256 _add)

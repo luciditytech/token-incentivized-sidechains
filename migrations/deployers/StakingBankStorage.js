@@ -1,14 +1,14 @@
 const getConfig = require('../inc/getConfig');
 
-module.exports = (deployer, network, accounts, StakingBankStorageArtifact, SalesArtifacts) => {
+module.exports = (deployer, network, accounts, StakingBankStorageArtifact, HumanStandardTokenArtifacts) => {
   return deployer.then(async () => {
     const { options } = getConfig(network, accounts);
 
-    const sales = await SalesArtifacts.deployed();
+    const token = await HumanStandardTokenArtifacts.deployed();
 
     return deployer.deploy(
       StakingBankStorageArtifact,
-      await sales.token(),
+      token.address,
       options,
     );
   });

@@ -30,7 +30,7 @@
     "bignumber.js": "8.1.1",
     "bn.js": "4.11.8",
     "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#015acbbf66fa245c8b907f2487a744d4da154667",
-    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#develop",
+    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#feature/lit-284-add-enable",
     "ethereumjs-util": "6.1.0",
     "ethjs-provider-http": "0.1.6",
     "ethjs-query": "0.3.8",

@@ -1,78 +1,100 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.5.0;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'zeppelin-solidity/contracts/MerkleProof.sol';
-import "zeppelin-solidity/contracts/ReentrancyGuard.sol";
-import 'token-sale-contracts/contracts/Token.sol';
-import 'token-sale-contracts/contracts/HumanStandardToken.sol';
+import "./interfaces/IStakingBank.sol";
+import "./StakingBankStorage.sol";
 
-contract StakingBank is Ownable, ReentrancyGuard {
-  address public tokenAddress;
-  address public chainAddress;
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-  constructor(
-    address _tokenAddress,
-    address _chainAddress
-  ) public {
-    tokenAddress = _tokenAddress;
-    chainAddress = _chainAddress;
+import "contract-registry/contracts/interfaces/RegistrableWithSingleStorage.sol";
+import "contract-registry/contracts/storageStrategy/interfaces/IStorageStrategy.sol";
+import "digivice/contracts/interfaces/IVerifierRegistry.sol";
+import "andromeda/contracts/interface/IChain.sol";
+import "token-sale-contracts/contracts/HumanStandardToken.sol";
+
+contract StakingBank is IStakingBank, Ownable, RegistrableWithSingleStorage {
+
+  using SafeMath for uint256;
+
+  bytes32 constant NAME = "StakingBank";
+
+  modifier onlyWhenRevealPhase() {
+    IChain andromeda = IChain(contractRegistry.contractByName("Chain"));
+    require(address(andromeda) != address(0x0), "Chain address unknown");
+    require(!andromeda.isProposePhase(), "can be executed onlyWhenRevealPhase");
+    _;
   }
 
-  mapping(address => uint256) public balances;
-  mapping(address => bool) public locks;
+  constructor (address _contractRegistry, IStorageBase _storage)
+  public
+  RegistrableWithSingleStorage(_contractRegistry, _storage) {}
 
-  function receiveApproval(
-    address _from,
-    uint256 _value,
-    address _token,
-    bytes _data
-  ) public nonReentrant returns (bool success) {
-    require(_token == tokenAddress);
+  function _storage() private view returns (StakingBankStorage) {
+    return StakingBankStorage(address(singleStorage));
+  }
 
-    Token token = Token(tokenAddress);
-    uint256 allowance = token.allowance(_from, this);
+  function contractName() external view returns (bytes32) {
+    return NAME;
+  }
 
-    require(allowance > 0);
-    require(token.transferFrom(_from, this, allowance));
+  function withdraw(uint256 _value)
+  external
+  onlyWhenRevealPhase
+  returns (bool) {
+    StakingBankStorage bankStorage = _storage();
+    HumanStandardToken token = HumanStandardToken(address(bankStorage.token()));
 
-    balances[_from] += allowance;
+    uint256 balance = bankStorage.stakingBalances(msg.sender);
+
+    require(_value > 0 && _value <= balance, "nothing to withdraw");
+
+    require(token.transfer(msg.sender, _value), "withdraw failed");
+
+    balance = balance.sub(_value);
+    bankStorage.setStakingBalance(msg.sender, balance);
+
+    _notifyVerifierRegistryAboutDecreasingBalance(msg.sender, _value);
 
     return true;
   }
 
-  function withdraw(uint256 _value) public returns (bool success) {
-    uint256 balance = balances[msg.sender];
-    
-    require(_value > 0 && balance >= _value);
+  // when working with `Salable.sol` token, please update this function to:
+  // `function receiveApproval(address _from)`
+  function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _data)
+  external
+  returns (bool) {
+    StakingBankStorage bankStorage = _storage();
+    HumanStandardToken token = HumanStandardToken(address(bankStorage.token()));
 
-    Token token = Token(tokenAddress);
+    uint256 allowance = token.allowance(_from, address(this));
+    require(allowance > 0, "nothing to approve");
 
-    require(token.transfer(msg.sender, _value));
+    require(token.transferFrom(_from, address(this), allowance), "transferFrom failed");
+    bankStorage.setStakingBalance(_from, bankStorage.stakingBalances(_from).add(allowance));
 
-    balances[msg.sender] -= _value;
-
-    return true;
-  }
-
-  function burn(address _id, uint256 _value) public onlyOwner nonReentrant returns (bool success) {
-    uint256 balance = balances[_id];
-    require(_value > 0 && balance >= _value);
-
-    Token token = Token(tokenAddress);
-    require(token.transfer(0x0, _value));
-
-    balances[msg.sender] -= _value;
+    _notifyVerifierRegistryAboutIncreasingBalance(_from, allowance);
 
     return true;
   }
 
-  function lockAccount(address _id) public onlyOwner nonReentrant returns (bool success) {
-    locks[_id] = true;
-    return true;
+  function _notifyVerifierRegistryAboutIncreasingBalance(address _verifier, uint256 _add)
+  private {
+    IVerifierRegistry vr = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
+    require(address(vr) != address(0x0), "VerifierRegistry address unknown");
+    require(vr.increaseShardBalance(_verifier, _add), "_notifyVerifierRegistryAboutStakeBalance failed");
   }
 
-  function unlockAccount(address _id) public onlyOwner nonReentrant returns (bool success) {
-    locks[_id] = false;
-    return true;
+  function _notifyVerifierRegistryAboutDecreasingBalance(address _verifier, uint256 _sub)
+  private {
+    IVerifierRegistry vr = IVerifierRegistry(contractRegistry.contractByName("VerifierRegistry"));
+    require(address(vr) != address(0x0), "VerifierRegistry address unknown");
+    require(vr.decreaseShardBalance(_verifier, _sub), "_notifyVerifierRegistryAboutStakeBalance failed");
+  }
+
+  function stakingBalance(address _verifier) external view returns (uint256) {
+    return _storage().stakingBalances(_verifier);
+  }
+
+  function token() external view returns (IERC20) {
+    return _storage().token();
   }
 }

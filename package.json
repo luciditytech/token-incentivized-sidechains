@@ -24,19 +24,20 @@
   "homepage": "https://github.com/luciditytech/token-incentivized-sidechains#readme",
   "dependencies": {
     "abi-decoder": "1.2.0",
-    "andromeda": "git+ssh://git@github.com/luciditytech/andromeda.git#feature/lit-246-storage-contract",
+    "andromeda": "git+ssh://git@github.com/luciditytech/andromeda.git#develop",
     "babel-polyfill": "6.26.0",
     "babel-register": "6.26.0",
     "bignumber.js": "8.1.1",
     "bn.js": "4.11.8",
-    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#feature/develop-alpha",
-    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#feature/lit-195-decompose",
+    "contract-registry": "git+ssh://git@github.com/luciditytech/contract-registry.git#015acbbf66fa245c8b907f2487a744d4da154667",
+    "digivice": "git+ssh://git@github.com/luciditytech/digivice.git#develop",
     "ethereumjs-util": "6.1.0",
     "ethjs-provider-http": "0.1.6",
     "ethjs-query": "0.3.8",
     "ethjs-rpc": "0.2.0",
     "ministro-tool": "0.2.2",
     "token-sale-contracts": "git+ssh://git@github.com/luciditytech/token-sale-contracts.git#feature/lit-195-salable-rc20",
+    "truffle-flattener": "^1.3.0",
     "web3": "1.0.0-beta.48"
   },
   "devDependencies": {
